@@ -1,6 +1,7 @@
 html, body {
   margin: 0px;
   padding: 0px;
+  font-family: Tahoma;
 }
 
 .content {
@@ -17,7 +18,8 @@ html, body {
   font-size: 26px;
   line-height: 50px;
   padding: 0px 40px;
-  color: #F4F4F4;
+  font-weight: bolder;
+  color: #FCFCFC;
   background: linear-gradient(to right, #88F , #CCF);
 }
 
@@ -48,7 +50,7 @@ html, body {
 .navigation a {
   text-decoration: none;
   font-weight: bold;
-  color: #FFF;
+  color: #111;
 }
 
 .queues {
@@ -111,7 +113,7 @@ html, body {
   border-radius: 15px;
   border: 2px solid #88F;
   cursor: pointer;
-  color: #F4F4F4;
+  color: #111;
 }
 
 .upload-button-disabled {
@@ -137,7 +139,7 @@ html, body {
   border-radius: 15px;
   border: 2px solid #F88;
   cursor: pointer;
-  color: #F4F4F4;
+  color: #111;
 }
 
 .form-container {

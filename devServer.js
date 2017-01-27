@@ -231,7 +231,7 @@ app.get("/", requireLogin, function(req, res) {
 
 // Resources and 404 catch-all
 app.all("*", requireLogin, function(req, res) {
-  var accepted_resource_types = ['css', 'jpg', 'jpeg', 'gif', 'png', 'bmp'];
+  var accepted_resource_types = ['css', 'jpg', 'jpeg', 'gif', 'png', 'bmp', 'zip'];
   if (accepted_resource_types.indexOf(req.params[0].split('.')[1]) === -1) {
     res.render("pages/404");
   } else {
