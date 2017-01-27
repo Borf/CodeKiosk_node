@@ -1,0 +1,21 @@
+{
+  "name": "codekiosk",
+  "version": "1.0.0",
+  "description": "Jar upload and playback service",
+  "main": "./app/main.js",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "busboy": "^0.2.14",
+    "client-sessions": "^0.7.0",
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "moment": "^2.17.1",
+    "mongodb": "^2.2.21"
+  },
+  "scripts": {
+    "dev": "node devServer.js",
+    "live": "node liveServer.js"
+  },
+  "author": "Avenar",
+  "license": "UNLICENSED"
+}

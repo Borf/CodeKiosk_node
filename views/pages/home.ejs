@@ -1,0 +1,77 @@
+<% include ../partials/head %>
+<% if(isAdmin) { %>
+  <% include ../partials/adminheader %>
+<% } else { %>
+  <% include ../partials/header %>
+<% } %>
+  <script>
+    function doDelete(id) {
+      if (confirm("Delete queue?\n\nWARNING: This will remove the queue and all associated jar files.\nWARNING: This is irreversible.")) {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() { 
+          if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            window.location.href = "/";
+          }
+        }
+        xmlHttp.open("DELETE", "http://avenar.dk:8081/api/queue/" + id, true);
+        xmlHttp.send(null);
+      }
+    }
+  </script>
+  <div class="content">
+    <div class="page-title">
+      Queues available:
+    </div>
+    <div class="queues">
+      <% queues.forEach(function(queue) { %>
+        <div class="queue-tile">
+          <div class="queue-name-container">
+            <div class="queue-name-title">
+              Name:
+            </div>
+            <div class="queue-name">
+              <%= queue.name %>
+            </div>
+          </div>
+          <div class="queue-duration-container">
+            <div class="queue-duration-title">
+              Duration:
+            </div>
+            <div class="queue-duration">
+              <%= queue.duration %>
+            </div>
+          </div>
+          <div class="queue-closes-container">
+            <div class="queue-closes-title">
+              Open until:
+            </div>
+            <div class="queue-closes">
+              <%= moment(queue.end_date, 'ddd MMM DD YYYY HH:mm:ss Z').format('Do MMMM, YYYY') %>
+            </div>
+          </div>
+          <div class="button-container">
+            <% if(queue.is_closed) { %>
+              <div class="upload-button-disabled">
+                Upload .jar
+              </div>
+              <div class="upload-closed-info">
+                This queue is closed.
+              </div>
+            <% } else { %>            
+              <a href="/add_jar/<%= queue._id %>">
+                <div class="upload-button">
+                  Upload .jar
+                </div>
+              </a>
+            <% } %>
+            <% if(isAdmin) { %>
+              <div class="delete-button" onClick="doDelete('<%= queue._id %>');">
+                Delete Queue
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+<% include ../partials/footer %>

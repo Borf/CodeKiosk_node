@@ -1,0 +1,21 @@
+<% include ../partials/head %>
+<% include ../partials/adminheader %>
+  <div class="content">
+    <div class="page-title">
+      Add Jar
+    </div>
+    <form name="addjar" method="POST" enctype="multipart/form-data" action="/api/jar">
+      <input name="student_id" type="hidden" value="<%= student_id %>" />
+      <input name="queue_id" type="hidden" value="<%= queue_id %>" />
+      <div class="form-container">
+        <div class="input-container">
+          <div class="input-label">
+            File:
+          </div>
+          <input type="file" name="jar_file" accept=".jar" />
+        </div>
+      </div>
+      <input type="submit" value="Upload jar" />
+    </form>
+  </div>
+<% include ../partials/footer %>

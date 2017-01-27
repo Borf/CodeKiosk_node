@@ -1,0 +1,8 @@
+<% include ../partials/head %>
+  <div class="forward-text">
+    Forwarding to oauth login...
+  </div>
+  <script>
+    window.onload = function(){ window.setTimeout(function() { window.location = '<%= url %>' }, 2000); };
+  </script>
+<% include ../partials/footer %>

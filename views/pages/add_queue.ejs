@@ -1,0 +1,47 @@
+<% include ../partials/head %>
+<% include ../partials/adminheader %>
+  <div class="content">
+    <div class="page-title">
+      Add Queue
+    </div>
+    <form name="addqueue" method="POST" action="/api/queue">
+      <div class="form-container">
+        <div class="input-container">
+          <div class="input-label">
+            Name:
+          </div>
+          <input type="text" name="name" placeholder="Season year class projectname" />
+        </div>
+        <div class="input-container">
+          <div class="input-label">
+            Duration:
+          </div>
+          <input type="text" name="duration" placeholder="Time in seconds" />
+        </div>
+        <div class="input-container">
+          <div class="input-label">
+            Available from:
+          </div>
+          <input type="text" name="start_date" placeholder="dd-mm-yy" />
+        </div>
+        <div class="input-container">
+          <div class="input-label">
+            Available to:
+          </div>
+          <input type="text" name="end_date" placeholder="dd-mm-yy" />
+        </div>
+        <div class="input-container">
+          <div class="input-label">
+            Playback mode:
+          </div>
+          <select name="playback_mode">
+            <option value="0">Oldest to Newest</option>
+            <option value="1">Newest to Oldest</option>
+            <option value="2">Random</option>
+          </select>
+        </div>
+      </div>
+      <input type="submit" value="Add Queue" />
+    </form>
+  </div>
+<% include ../partials/footer %>
