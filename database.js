@@ -155,6 +155,7 @@ function createQueuePointer(queue_id) {
         queue_id: queue_id,
         current: 0,
         length: res,
+        completed: false,
       };
       
       pointerCollection.insertOne(data, callbackThree);
@@ -171,31 +172,32 @@ function createQueuePointer(queue_id) {
 
 function updateQueuePointer(queue_id, advance = false) {
   var initData = {};
+  var playback_mode = 0;
   MongoClient.connect(config.DATABASE_URL, function(err, db) {
-    function callbackThree(err, r) {
+    function callbackFour(err, r) {
       db.close();
       return true;
     }
-    function callbackTwo(err, res) {
+    function callbackThree(err, res) {
       assert.equal(null, err);
       var preVal = initData;
       if (advance) {
-        switch (preVal.playback_mode) {
-          case 0:
+        switch (playback_mode) {
+          case "0":
             initData.current = preVal.current + 1;
             if (initData.current == res) {
               initData.current = 0;
               initData.completed = true;
             }
             break;
-          case 1:
+          case "1":
             initData.current = preVal.current - 1;
             if (initData.current == -1) {
               initData.current = (res - 1);
               initData.completed = true;
             }
             break;
-          case 2:
+          case "2":
             initData.current = Math.floor(Math.random() * res);
             break;
         }
@@ -213,14 +215,17 @@ function updateQueuePointer(queue_id, advance = false) {
       initData.length = res;
       
       var pointerCollection = db.collection('pointers');
-      
-      pointerCollection.update({queue_id: ObjectId(queue_id)}, initData, callbackThree);
+      pointerCollection.update({queue_id: ObjectId(queue_id)}, initData, callbackFour);
+    }
+    function callbackTwo(err, queue) {
+      playback_mode = queue.playback_mode;
+      var jarCollection = db.collection('jars');
+      jarCollection.count({queue_id: queue_id}, callbackThree);
     }
     function callbackOne(err, result) {
       assert.equal(null, err);
       initData = result;
-      var jarCollection = db.collection('jars');
-      jarCollection.count({queue_id: queue_id}, callbackTwo);
+      db.collection('queues').findOne({_id: ObjectId(queue_id)}, callbackTwo);
     }
     var pointerCollection = db.collection('pointers');
     pointerCollection.findOne({queue_id: ObjectId(queue_id)}, callbackOne);
