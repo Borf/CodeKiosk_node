@@ -50,25 +50,11 @@
             </div>
           </div>
           <div class="button-container">
-            <% if(queue.is_closed) { %>
-              <div class="upload-button-disabled">
-                Upload .jar
+            <a href="/queue/<%= queue._id %>">
+              <div class="upload-button">
+                See Details
               </div>
-              <div class="upload-closed-info">
-                This queue is closed.
-              </div>
-            <% } else { %>            
-              <a href="/add_jar/<%= queue._id %>">
-                <div class="upload-button">
-                  Upload .jar
-                </div>
-              </a>
-            <% } %>
-            <% if(isAdmin) { %>
-              <div class="delete-button" onClick="doDelete('<%= queue._id %>');">
-                Delete Queue
-              </div>
-            <% } %>
+            </a>
           </div>
         </div>
       <% }); %>

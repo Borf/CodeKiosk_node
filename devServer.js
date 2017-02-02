@@ -37,7 +37,7 @@ app.use(function(req, res, next) {
   if (req.CodeKioskAuth.sessionToken) {
     const crypto = require('crypto');
     const decipher = crypto.createDecipher('aes192', config.SESSION_PASS);
-    
+
     var decrypted = '';
     decipher.on('readable', () => {
       var data = decipher.read();
@@ -48,7 +48,7 @@ app.use(function(req, res, next) {
       req.user = JSON.parse(decrypted);
       next();
     });
-    
+
     decipher.write(req.CodeKioskAuth.sessionToken, 'hex');
     decipher.end();
   } else {
@@ -68,7 +68,7 @@ function requireAdmin (req, res, next) {
   if (!req.user) {
     oauth.requestToken(res, req);
   } else {
-    if (config.ADMIN_ARRAY.indexOf(req.user.name) === -1) {
+    if (config.ADMIN_ARRAY.indexOf(req.user.username) === -1) {
       res.redirect("/");
     } else {
       next();
@@ -119,7 +119,6 @@ app.get("/api/queues", function(req, res) {
   }
   db.getQueues(req, res, callback);
 });
-
 app.get("/api/jar/:id", function(req, res) {
   var id = req.params.id;
   function callback(err, jar) {
@@ -178,7 +177,7 @@ app.get('/api/callback_login/:token', function(req, res) {
 app.get('/api/set_test_cookie', function(req, res) {
   const crypto = require('crypto');
   const cipher = crypto.createCipher('aes192', config.SESSION_PASS);
-  
+
   var encrypted = '';
   cipher.on('readable', () => {
     var data = cipher.read();
@@ -194,35 +193,47 @@ app.get('/api/set_test_cookie', function(req, res) {
     student_id: 12321
   };
   cipher.write(JSON.stringify(data));
-  cipher.end(); 
+  cipher.end();
 });
 app.get('/logout', function(req, res) {
   req.CodeKioskAuth.reset();
   res.redirect('/');
 });
-/* app.get('/install/:authToken', function(req, res) {
-  if (req.params.authToken === "ioWOi2294iohWWfo2") {
-    db.installSess();
-  }
+app.get('/installdb/', function(req, res) {
+  db.installDB ();
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Database installed.\n');
-}); */
+});
 
 // Website routes
+app.get("/queue/:id", requireLogin, function(req, res) {
+  var id = req.params.id;
+  function callback(jars, queue, pointer) {
+    res.render("pages/queue", {
+      moment: moment,
+      queue: queue,
+      pointer: pointer,
+      isAdmin: (config.ADMIN_ARRAY.indexOf(req.user.username) >= 0 ? true : false),
+      jars: jars
+    });
+  }
+  db.getQueue(res, id, callback);
+});
 app.get("/add_queue", requireAdmin, function(req, res) {
   res.render("pages/add_queue");
 });
-app.get("/add_jar/:id", requireAdmin, function(req, res) {
+app.get("/add_jar/:id", requireLogin, function(req, res) {
   res.render("pages/add_jar", {
     queue_id: req.params.id,
-    student_id: req.user.student_id
+    student_id: req.user.student_id,
+    student_name: req.user.name,
   });
 });
 app.get("/", requireLogin, function(req, res) {
   var callback = function(res, queues) {
     res.render("pages/home", {
       moment: moment,
-      isAdmin: (config.ADMIN_ARRAY.indexOf(req.user.name) >= 0 ? true : false),
+      isAdmin: (config.ADMIN_ARRAY.indexOf(req.user.username) >= 0 ? true : false),
       queues: queues
     });
   }

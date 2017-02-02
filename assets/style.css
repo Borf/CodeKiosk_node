@@ -176,6 +176,45 @@ html, body {
 .lost_image {
   max-height: calc(100vh - 50px);
 }
+.jar-header {
+  display: flex;
+  width: 50%;
+  margin: 0px auto;
+  font-weight: bold;
+  background-color: #DDF;
+  height: 30px;
+  line-height: 30px;
+}
+
+.jar-even {
+  background-color: #DDF;
+}
+
+.jar-row {
+  display: flex;
+  width: 50%;
+  margin: 0px auto;
+  position: relative;
+  height: 30px;
+  line-height: 30px;
+}
+
+.jar-title, .jar-student {
+  flex: 1;
+  padding: 0px 5px;
+}
+
+.jar-pointer {
+  width: 0px;
+  height: 0px;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 6px solid #000;
+  position: absolute;
+  left: -12px;
+  top: 9px;
+}
+
 
 .footer {
   height: 50px;

@@ -18,14 +18,14 @@ var assert = require('assert');
 function createQueue(data, res, callback) {
   MongoClient.connect(config.DATABASE_URL, function(err, db) {
     assert.equal(null, err);
-    
+
     var date_parts = data.start_date.split('-');
     data.start_date = new Date(date_parts[1] + "/" + date_parts[0] + "/" + date_parts[2]).toString();
     date_parts = data.end_date.split('-');
     data.end_date = new Date(date_parts[1] + "/" + date_parts[0] + "/" + date_parts[2]).toString();
-    
+
     var collection = db.collection('queues');
-    
+
     collection.insertOne(data, function(err, r) {
       createQueuePointer(r.insertedId);
       callback(err, r);
@@ -38,9 +38,9 @@ function createQueue(data, res, callback) {
 function getQueues(req, res, callback) {
   MongoClient.connect(config.DATABASE_URL, function(err, db) {
     assert.equal(null, err);
-    
+
     var collection = db.collection('queues');
-    
+
     collection.find({}).toArray(function(err, docs) {
       assert.equal(err, null);
       return_data = docs;
@@ -48,6 +48,23 @@ function getQueues(req, res, callback) {
     });
 
     db.close();
+  });
+}
+
+function getQueue(res, id, callback) {
+  MongoClient.connect(config.DATABASE_URL, function(err, db) {
+    assert.equal(null, err);
+    var qcoll = db.collection('queues');
+    qcoll.findOne({_id: ObjectId(id)}).then((queue) => {
+      var pcoll = db.collection('pointers');
+      pcoll.findOne({queue_id: ObjectId(id)}).then((pointer) => {
+        var coll = db.collection('jars');
+        coll.find({queue_id: id}).toArray(function(err, jars) {
+          db.close();
+          callback(jars, queue, pointer);
+        });
+      });
+    });
   });
 }
 
@@ -82,9 +99,10 @@ function getNextInQueue(req, res, queue_id, callback) {
       cursor.each(function(err, jar) {
         if (err) throw err;
         if (jar != null) {
-          jar_data.url = "http://codekiosk.borf.nl/api/jar/" + jar.name;
+          jar_data.url = "http://codekiosk.borf.nl/api/jar/" + jar.name; //TODO: make this configurable
           jar_data.title = jar.title;
           jar_data.student_id = jar.student_id;
+          jar_data.student_name = jar.student_name;
         } else {
           updateQueuePointer(queue_id, true);
           callback(res, jar_data);
@@ -99,21 +117,22 @@ function getNextInQueue(req, res, queue_id, callback) {
 function addJar(form_data, res, callback) {
   MongoClient.connect(config.DATABASE_URL, function(err, db) {
     assert.equal(null, err);
-    
+
     var collection = db.collection('jars');
-    
+
     if(collection.find({student_id: form_data.student_id}).toArray().length > 0) {
       console.log("Student already uploaded a jar.");
       // TODO: add error handling or overwrite
-    } else {      
+    } else {
       var data = {
         queue_id: form_data.queue_id,
         student_id: form_data.student_id,
+        student_name: form_data.student_name,
         name: form_data.jar_file.name,
         title: form_data.jar_file.title,
         timestamp: new Date().valueOf()
       };
-      
+
       collection.insertOne(data, function(err, r) {
         updateQueuePointer(form_data.queue_id);
         callback(err, r);
@@ -157,7 +176,7 @@ function createQueuePointer(queue_id) {
         length: res,
         completed: false,
       };
-      
+
       pointerCollection.insertOne(data, callbackThree);
     }
     function callbackOne(err, result) {
@@ -205,7 +224,7 @@ function updateQueuePointer(queue_id, advance = false) {
         if (preVal.length < res) {
           if (preVal.completed) {
             initData.current = (res - 1);
-          } 
+          }
         } else if (preVal.length > res) {
           if (preVal.current >= res) {
             initData.current = (res - 1);
@@ -213,7 +232,7 @@ function updateQueuePointer(queue_id, advance = false) {
         }
       }
       initData.length = res;
-      
+
       var pointerCollection = db.collection('pointers');
       pointerCollection.update({queue_id: ObjectId(queue_id)}, initData, callbackFour);
     }
@@ -232,24 +251,25 @@ function updateQueuePointer(queue_id, advance = false) {
   });
 }
 
-/* function installDB() {
+ function installDB () {
   MongoClient.connect(config.DATABASE_URL, function(err, db) {
     db.createCollection('loginSecrets', {capped: true, size: 500000});
     db.createCollection('jars');
     db.createCollection('queues');
     db.createCollection('pointers');
   });
-} */
+}
 
 module.exports = {
-  // installDB: installDB,
+  installDB: installDB,
   createQueue: createQueue,
   getQueues: getQueues,
+  getQueue: getQueue,
   getNextInQueue: getNextInQueue,
   getJar: getJar,
   deleteQueue: deleteQueue,
   addJar: addJar,
   storeLoginUser: storeLoginUser,
   getLoginUser: getLoginUser
-  
+
 }

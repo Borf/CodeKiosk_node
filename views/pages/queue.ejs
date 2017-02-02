@@ -1,0 +1,89 @@
+<% include ../partials/head %>
+<% if(isAdmin) { %>
+  <% include ../partials/adminheader %>
+<% } else { %>
+  <% include ../partials/header %>
+<% } %>
+  <script>
+    function doDelete(id) {
+      if (confirm("Delete queue?\n\nWARNING: This will remove the queue and all associated jar files.\nWARNING: This is irreversible.")) {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() { 
+          if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            window.location.href = "/";
+          }
+        }
+        xmlHttp.open("DELETE", "http://avenar.dk:8081/api/queue/" + id, true);
+        xmlHttp.send(null);
+      }
+    }
+  </script>
+  <div class="content">
+    <div class="page-title">
+      Queue: <%= queue.name %>
+    </div>
+    <div class="queue">
+      <div class="queue-info-container">
+        <div class="queue-info-box">
+          Duration: <%= queue.duration %>
+        </div>
+        <div class="queue-info-box">
+          Queue closes at: <%= moment(queue.end_date, 'ddd MMM DD YYYY HH:mm:ss Z').format('Do MMMM, YYYY') %>
+        </div>
+        <div class="queue-info-box">
+          Playback Mode: <% switch(queue.playback_mode) { case "0": %>Oldest to Newest<% break; case "1": %>Newest to Oldest<% break; case "2": %>Random Selection<% break; } %>
+        </div>
+        <div class="queue-info-box">
+          Number of submissions: <%= jars.length %>
+        </div>
+      </div>
+      <div class="button-container">
+        <% if(queue.is_closed) { %>
+          <div class="upload-button-disabled">
+            Upload .jar
+          </div>
+          <div class="upload-closed-info">
+            This queue is closed.
+          </div>
+        <% } else { %>            
+          <a href="/add_jar/<%= queue._id %>">
+            <div class="upload-button">
+              Upload .jar
+            </div>
+          </a>
+        <% } %>
+        <% if(isAdmin) { %>
+          <div class="delete-button" onClick="doDelete('<%= queue._id %>');">
+            Delete Queue
+          </div>
+        <% } %>
+      </div>
+    </div>
+    <div class="page-title">
+      Jars:
+    </div>
+    <div class="jars">
+      <div class="jar-header">
+        <div class="jar-title">
+          Title
+        </div>
+        <div class="jar-student">
+          Student
+        </div>
+      </div>
+      <% var even = false; jars.forEach(function(jar, i) { %>
+        <div class="jar-row<%= (even ? " jar-even" : "") %>">
+          <% if (pointer.current == i) { %>
+            <div class="jar-pointer"></div>
+          <% } %>
+          <div class="jar-title">
+            <%= jar.title %>
+          </div>
+          <div class="jar-student">
+            <%= jar.student_name %>
+          </div>
+        </div>
+      <% even = !even; }); %>
+    </div>
+  </div>
+<% include ../partials/footer %>

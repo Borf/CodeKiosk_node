@@ -73,15 +73,18 @@ function requestToken(req, res){
 }
 
 function verifyToken(req, res, token, verifier, secret) {
-  function verifyCallbackTwo(response) {
+  var data = {};
+  var adat = {};
+  
+  function getUserInfoCallback(response) {
     const crypto = require('crypto');
     const cipher = crypto.createCipher('aes192', config.SESSION_PASS);
-        
+    
     var encrypted = '';
     cipher.on('readable', () => {
-      var data = cipher.read();
-      if (data)
-        encrypted += data.toString('hex');
+      var cipherData = cipher.read();
+      if (cipherData)
+        encrypted += cipherData.toString('hex');
     });
     cipher.on('end', () => {
       req.CodeKioskAuth.sessionToken = encrypted;
@@ -89,6 +92,26 @@ function verifyToken(req, res, token, verifier, secret) {
       res.redirect("/");
     });
     
+    var info = '';
+    response.on('data', function (chunk) {
+      info += chunk;
+    });
+    response.on('end', function () {
+      if (info.split("\n")[1] == "Oauth failed") {
+        console.log("info failed");
+        res.redirect("/logout");
+        // TODO: add error handling
+      } else {
+        var values = JSON.parse(info);
+        adat.name = values.nickname;
+        adat.student = values.student;
+        cipher.write(JSON.stringify(adat));
+        cipher.end();
+      }
+    });
+  }
+  
+  function verifyCallbackTwo(response) {
     var str = '';
     response.on('data', function (chunk) {
       str += chunk;
@@ -99,11 +122,27 @@ function verifyToken(req, res, token, verifier, secret) {
         // TODO: add error handling
       } else {
         var values = JSON.parse(str);
-        var data = {};
-        data.student_id = values[0].Id;
-        data.name = values[0].login;
-        cipher.write(JSON.stringify(data));
-        cipher.end();
+        adat.student_id = values[0].Id;
+        adat.username = values[0].login;
+        
+        var optionsInfo = {
+          host: config.AVANS_BASE_URL,
+          port: 443,
+          path: config.INFO_PATH
+            + "?oauth_consumer_key=" + config.CONS_KEY
+            + "&oauth_nonce=" + generateOauthNonce()
+            + "&oauth_signature_method=" + "HMAC-SHA1"
+            + "&oauth_timestamp=" + new Date().valueOf()
+            + "&oauth_token=" + data.oauth_token,
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+        };
+        var basePath = "GET&" + encodeURIComponent("https://" + config.AVANS_BASE_URL + config.INFO_PATH) + "&" + encodeURIComponent(optionsInfo.path.substr(config.INFO_PATH.length + 1));
+        var oauth_hash = encodeURIComponent(crypto.createHmac('sha1', config.CONS_SEC + "&" + data.oauth_token_secret).update(basePath).digest('base64'));
+        optionsInfo.path += "&oauth_signature=" + oauth_hash;
+        https.get(optionsInfo, getUserInfoCallback).end();
       }
     });
   }
@@ -119,7 +158,6 @@ function verifyToken(req, res, token, verifier, secret) {
         // TODO: add error handling
       } else {
         var values = str.split("&");
-        var data = {};
         values.forEach(function(val) {
           var sp = val.split("=");
           data[sp[0]] = sp[1];
