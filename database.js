@@ -4,6 +4,7 @@ var config = require('./config.js');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
 var assert = require('assert');
+var fs = require('fs');
 
 /* Create Queue call
  * data format:
@@ -143,6 +144,21 @@ function addJar(form_data, res, callback) {
   });
 }
 
+function deleteJar(id, res, callback) {
+  MongoClient.connect(config.DATABASE_URL, function(err, db) {
+    assert.equal(null, err);
+    jarColl = db.collection('jars');
+    jarColl.findOne({_id: ObjectId(id)}).then(function(err, jar) {
+      var queue_id = jar.queue_id;
+      jarColl.deleteOne({_id: ObjectId(id)});
+      fs.unlinkSync(path.join(__dirname, config.JARS_PATH, jar.name + ".jar"));
+      updateQueuePointer(queue_id);
+      db.close();
+      callback();
+    });
+  });
+}
+
 function storeLoginUser(secret, user_token) {
   MongoClient.connect(config.DATABASE_URL, function(err, db) {
     assert.equal(null, err);
@@ -251,7 +267,7 @@ function updateQueuePointer(queue_id, advance = false) {
   });
 }
 
- function installDB () {
+function installDB () {
   MongoClient.connect(config.DATABASE_URL, function(err, db) {
     db.createCollection('loginSecrets', {capped: true, size: 500000});
     db.createCollection('jars');
@@ -270,6 +286,7 @@ module.exports = {
   deleteQueue: deleteQueue,
   addJar: addJar,
   storeLoginUser: storeLoginUser,
-  getLoginUser: getLoginUser
+  getLoginUser: getLoginUser,
+  deleteJar: deleteJar
 
 }

@@ -167,6 +167,14 @@ app.post("/api/jar", requireLogin, function(req, res) {
   });
   req.pipe(busboy);
 });
+app.delete("/api/jar/:id", function(req, res) {
+  var id = req.params.id;
+  function callback(err, jar) {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.end('OK');
+  }
+  db.deleteJar(id, res, callback);
+});
 app.get('/api/callback_login/:token', function(req, res) {
   var token = req.params.token;
   function callback(err, r) {
